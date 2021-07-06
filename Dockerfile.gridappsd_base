@@ -141,7 +141,7 @@ RUN cd $TEMP_DIR \
 # ----------------------------------------------------
 
 RUN cd $TEMP_DIR \
-    && git clone https://github.com/GMLC-TDC/HELICS \
+    && git clone https://github.com/GMLC-TDC/HELICS -b v2.6.1 \
     && cd HELICS \
     && mkdir build \
     && cd build \
