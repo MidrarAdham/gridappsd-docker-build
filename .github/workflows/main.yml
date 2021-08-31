@@ -11,6 +11,7 @@ jobs:
         run: |
 
           TAG="${GITHUB_REF#refs/heads/}"
+          TAG="${TAG#refs/tags/}"
           TAG="${TAG//\//_}"
           ORG=`echo "${{ secrets.DOCKER_PROJECT }}" | tr '[:upper:]' '[:lower:]'`
           ORG="${ORG:-gridappsd}"
@@ -52,6 +53,7 @@ jobs:
         run: |
 
           TAG="${GITHUB_REF#refs/heads/}"
+          TAG="${TAG#refs/tags/}"
           TAG="${TAG//\//_}"
           ORG=`echo "${{ secrets.DOCKER_PROJECT }}" | tr '[:upper:]' '[:lower:]'`
           ORG="${ORG:-gridappsd}"
