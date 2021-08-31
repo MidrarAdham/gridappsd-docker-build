@@ -62,7 +62,7 @@ jobs:
           
             if [ -n "$TAG" -a -n "$ORG" ]; then
               # Get the built container name
-              CONTAINER=`docker images --format "{{.Repository}}:{{.Tag}}" ${IMAGE}`
+              CONTAINER=`docker images --format "{{.Repository}}:{{.Tag}}" ${IMAGE} | grep -v ':builder'`
           
               echo "docker push ${CONTAINER}"
               docker push "${CONTAINER}"
