@@ -11,6 +11,7 @@ jobs:
         run: |
 
           TAG="${GITHUB_REF#refs/heads/}"
+          TAG="${TAG#refs/tags/}"
           TAG="${TAG//\//_}"
           ORG=`echo "${{ secrets.DOCKER_PROJECT }}" | tr '[:upper:]' '[:lower:]'`
           ORG="${ORG:-gridappsd}"
@@ -52,6 +53,7 @@ jobs:
         run: |
 
           TAG="${GITHUB_REF#refs/heads/}"
+          TAG="${TAG#refs/tags/}"
           TAG="${TAG//\//_}"
           ORG=`echo "${{ secrets.DOCKER_PROJECT }}" | tr '[:upper:]' '[:lower:]'`
           ORG="${ORG:-gridappsd}"
@@ -62,7 +64,7 @@ jobs:
           
             if [ -n "$TAG" -a -n "$ORG" ]; then
               # Get the built container name
-              CONTAINER=`docker images --format "{{.Repository}}:{{.Tag}}" ${IMAGE}`
+              CONTAINER=`docker images --format "{{.Repository}}:{{.Tag}}" ${IMAGE} | grep -v ':builder'`
           
               echo "docker push ${CONTAINER}"
               docker push "${CONTAINER}"
