@@ -3,20 +3,20 @@ FROM gridappsd/gridappsd_base:builder
 WORKDIR /gridappsd
 
 ENV GRIDAPPSD=/gridappsd
-ENV FNCS_INSTALL=${GRIDAPPSD}
+#ENV FNCS_INSTALL=${GRIDAPPSD}
 ENV GLD_INSTALL=${GRIDAPPSD}
 ENV CZMQ_VERSION 4.2.0
 ENV ZMQ_VERSION 4.3.1
 ENV TEMP_DIR=/tmp/source
 
-ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${FNCS_INSTALL}/lib
+ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${GRIDAPPSD}/lib
 
-ENV FNCS_LOG_FILE=yes
-ENV FNCS_LOG_STDOUT=yes
-ENV FNCS_LOG_TRACE=yes
-ENV FNCS_LOG_LEVEL=DEBUG1
+#ENV FNCS_LOG_FILE=yes
+#ENV FNCS_LOG_STDOUT=yes
+#ENV FNCS_LOG_TRACE=yes
+#ENV FNCS_LOG_LEVEL=DEBUG1
 
-ENV PYHELICS_INSTALL=/usr/local
+ENV PYHELICS_INSTALL=/gridappsd
 
 # ----------------------------------------------------
 # INSTALL ZMQ and BINDINGS for c++
@@ -27,67 +27,65 @@ RUN mkdir ${TEMP_DIR} \
     && wget http://github.com/zeromq/libzmq/releases/download/v${ZMQ_VERSION}/zeromq-${ZMQ_VERSION}.tar.gz \
     && tar -xzf zeromq-${ZMQ_VERSION}.tar.gz \
     && cd ${TEMP_DIR}/zeromq-${ZMQ_VERSION} \
-    && ./configure --prefix=${FNCS_INSTALL} \
+    && ./configure --prefix=${GRIDAPPSD} \
     && make \
     && make install \
     && cd /tmp \
     && /bin/rm -r ${TEMP_DIR}/zeromq-${ZMQ_VERSION} \
     && /bin/rm ${TEMP_DIR}/zeromq-${ZMQ_VERSION}.tar.gz
 
-ENV CFLAGS=-I${FNCS_INSTALL}/include
-ENV LDFLAGS=-L${FNCS_INSTALL}/lib
-ENV PKG_CONFIG_PATH=${FNCS_INSTALL}/lib/pkgconfig
+#ENV CFLAGS=-I${GRIDAPPSD}/include
+#ENV LDFLAGS=-L${GRIDAPPSD}/lib
+#ENV PKG_CONFIG_PATH=${GRIDAPPSD}/lib/pkgconfig
 
-RUN cd ${TEMP_DIR} \
-    && wget https://github.com/zeromq/czmq/releases/download/v${CZMQ_VERSION}/czmq-${CZMQ_VERSION}.tar.gz \
-    && tar -xzf czmq-${CZMQ_VERSION}.tar.gz \
-    && cd ${TEMP_DIR}/czmq-${CZMQ_VERSION} \
-    && ./configure --prefix=${FNCS_INSTALL} \
-    && make \
-    && make install \
-    && cd /tmp \
-    && /bin/rm -r ${TEMP_DIR}/czmq-${CZMQ_VERSION} \
-    && /bin/rm ${TEMP_DIR}/czmq-${CZMQ_VERSION}.tar.gz
+#RUN cd ${TEMP_DIR} \
+#    && wget https://github.com/zeromq/czmq/releases/download/v${CZMQ_VERSION}/czmq-${CZMQ_VERSION}.tar.gz \
+#    && tar -xzf czmq-${CZMQ_VERSION}.tar.gz \
+#    && cd ${TEMP_DIR}/czmq-${CZMQ_VERSION} \
+#    && ./configure --prefix=${GRIDAPPSD} \
+#    && make \
+#    && make install \
+#    && cd /tmp \
+#    && /bin/rm -r ${TEMP_DIR}/czmq-${CZMQ_VERSION} \
+#    && /bin/rm ${TEMP_DIR}/czmq-${CZMQ_VERSION}.tar.gz
 
-ENV CLFAGS=
-ENV LDFLAGS=
-ENV PKG_CONFIG_PATH=
+#ENV CLFAGS=
+#ENV LDFLAGS=
+#ENV PKG_CONFIG_PATH=
 
 # ----------------------------------------------------
 # INSTALL FNCS
 # ----------------------------------------------------
 
-RUN cd $TEMP_DIR \
-    && git clone -b develop --single-branch https://github.com/GRIDAPPSD/fncs.git \
-    && cd fncs \
-    && ./configure --prefix=${FNCS_INSTALL} --with-zmq=${FNCS_INSTALL} \
-    && make \
-    && make install \
-    && cd python \
-    && python setup.py sdist \
-    && pip install dist/fncs-2.0.1.tar.gz \
-    && pip3 install dist/fncs-2.0.1.tar.gz \
-    && cd /tmp \
-    && /bin/rm -r ${TEMP_DIR}/fncs
+#RUN cd $TEMP_DIR \
+#    && git clone -b develop --single-branch https://github.com/GRIDAPPSD/fncs.git \
+#    && cd fncs \
+#    && ./configure --prefix=${GRIDAPPSD} --with-zmq=${GRIDAPPSD} \
+#    && make \
+#   && make install \
+#   && cd python \
+#   && python setup.py sdist \
+#    && pip install dist/fncs-2.0.1.tar.gz \
+#   && pip3 install dist/fncs-2.0.1.tar.gz \
+#   && cd /tmp \
+#   && /bin/rm -r ${TEMP_DIR}/fncs
 
 # ----------------------------------------------------
 # INSTALL Helics
 # ----------------------------------------------------
 
 RUN cd $TEMP_DIR \
-    && git clone https://github.com/GMLC-TDC/HELICS -b v2.7.1 \
+    && git clone -b v3.2.0 --single-branch https://github.com/GMLC-TDC/HELICS \
     && cd HELICS \
     && mkdir build \
     && cd build \
-    && cmake ../ \
+    && cmake -DCMAKE_INSTALL_PREFIX=$GLD_INSTALL ../ \
     && make \
     && make install \
     && cd /tmp \
     && /bin/rm -r ${TEMP_DIR}/HELICS \
-    && pip install helics-apps==2.7.1  \
-    && pip3 install helics-apps==2.7.1 \
-    && pip install helics==2.7.1 \
-    && pip3 install helics==2.7.1 
+    && pip install helics==3.2.0 \
+	&& pip install https://github.com/GMLC-TDC/helics-cli/archive/refs/tags/v0.6.1.tar.gz
 
 # ----------------------------------------------------
 # INSTALL Gridlab-D
@@ -103,7 +101,7 @@ RUN cd $TEMP_DIR \
     && make install \
     && cd ${TEMP_DIR}/gridlab-d \
     && autoreconf -if \
-    && ./configure --with-helics=/usr/local/bin --prefix=$GLD_INSTALL --with-fncs=$FNCS_INSTALL --enable-silent-rules 'CFLAGS=-g -O2 -w' 'CXXFLAGS=-g -O2 -w -std=c++14' 'LDFLAGS=-g -O2 -w' \
+    && ./configure --with-helics=$GLD_INSTALL --prefix=$GLD_INSTALL --enable-silent-rules 'CFLAGS=-g -O2 -w' 'CXXFLAGS=-g -O2 -w -std=c++14' 'LDFLAGS=-g -O2 -w' \
     && make \
     && make install \
     && cd /tmp \
@@ -125,7 +123,7 @@ RUN cd ${TEMP_DIR} \
     && wget http://archive.apache.org/dist/activemq/activemq-cpp/3.9.4/activemq-cpp-library-3.9.4-src.tar.gz \
     && tar -xzf activemq-cpp-library-3.9.4-src.tar.gz \
     && cd activemq-cpp-library-3.9.4 \
-    && ./configure --prefix=${FNCS_INSTALL} \
+    && ./configure --prefix=${GRIDAPPSD} \
     && make \
     && make install \
     && cd /tmp \
