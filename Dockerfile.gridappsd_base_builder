@@ -31,6 +31,7 @@ RUN apt-get update \
        libboost-dev \
        libzmq5-dev \
        m4 \
+       procps \
     && sudo /usr/bin/update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-6 1 \
     && sudo /usr/bin/update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-6 1 \
     && sudo sudo /usr/bin/update-alternatives  --set gcc /usr/bin/gcc-6 \
