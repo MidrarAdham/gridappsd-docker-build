@@ -5,7 +5,7 @@ WORKDIR /gridappsd
 ENV GRIDAPPSD=/gridappsd
 #ENV FNCS_INSTALL=${GRIDAPPSD}
 ENV GLD_INSTALL=${GRIDAPPSD}
-ENV CZMQ_VERSION 4.2.0
+#ENV CZMQ_VERSION 4.2.0
 ENV ZMQ_VERSION 4.3.1
 ENV TEMP_DIR=/tmp/source
 
@@ -16,23 +16,25 @@ ENV LD_LIBRARY_PATH=$LD_LIBRARY_PATH:${GRIDAPPSD}/lib
 #ENV FNCS_LOG_TRACE=yes
 #ENV FNCS_LOG_LEVEL=DEBUG1
 
-ENV PYHELICS_INSTALL=/gridappsd
+ENV PYHELICS_INSTALL=/usr/local
 
 # ----------------------------------------------------
 # INSTALL ZMQ and BINDINGS for c++
 # ----------------------------------------------------
 
-RUN mkdir ${TEMP_DIR} \
-    && cd ${TEMP_DIR} \
-    && wget http://github.com/zeromq/libzmq/releases/download/v${ZMQ_VERSION}/zeromq-${ZMQ_VERSION}.tar.gz \
-    && tar -xzf zeromq-${ZMQ_VERSION}.tar.gz \
-    && cd ${TEMP_DIR}/zeromq-${ZMQ_VERSION} \
-    && ./configure --prefix=${GRIDAPPSD} \
-    && make \
-    && make install \
-    && cd /tmp \
-    && /bin/rm -r ${TEMP_DIR}/zeromq-${ZMQ_VERSION} \
-    && /bin/rm ${TEMP_DIR}/zeromq-${ZMQ_VERSION}.tar.gz
+RUN apt-get update; apt-get install -y libzmq5-dev libxerces-c-dev
+
+#RUN mkdir ${TEMP_DIR} \
+#    && cd ${TEMP_DIR} \
+#    && wget http://github.com/zeromq/libzmq/releases/download/v${ZMQ_VERSION}/zeromq-${ZMQ_VERSION}.tar.gz \
+#    && tar -xzf zeromq-${ZMQ_VERSION}.tar.gz \
+#    && cd ${TEMP_DIR}/zeromq-${ZMQ_VERSION} \
+#   && ./configure --prefix=${GRIDAPPSD} \
+#   && make \
+#   && make install \
+#   && cd /tmp \
+#   && /bin/rm -r ${TEMP_DIR}/zeromq-${ZMQ_VERSION} \
+#   && /bin/rm ${TEMP_DIR}/zeromq-${ZMQ_VERSION}.tar.gz
 
 #ENV CFLAGS=-I${GRIDAPPSD}/include
 #ENV LDFLAGS=-L${GRIDAPPSD}/lib
@@ -74,37 +76,34 @@ RUN mkdir ${TEMP_DIR} \
 # INSTALL Helics
 # ----------------------------------------------------
 
-RUN cd $TEMP_DIR \
-    && git clone -b v3.2.0 --single-branch https://github.com/GMLC-TDC/HELICS \
+RUN mkdir ${TEMP_DIR} \
+	&& cd ${TEMP_DIR} \
+	&& pip install 'helics[cli]==3.2.1.post15' \
+    && git clone -b v3.2.1 --single-branch https://github.com/GMLC-TDC/HELICS \
     && cd HELICS \
+	&& git submodule update --init \
     && mkdir build \
     && cd build \
-    && cmake -DCMAKE_INSTALL_PREFIX=$GLD_INSTALL ../ \
+    && cmake ../ \
     && make \
     && make install \
     && cd /tmp \
-    && /bin/rm -r ${TEMP_DIR}/HELICS \
-    && pip install helics==3.2.0 \
-	&& pip install https://github.com/GMLC-TDC/helics-cli/archive/refs/tags/v0.6.1.tar.gz
+    && /bin/rm -r ${TEMP_DIR}/HELICS
 
 # ----------------------------------------------------
 # INSTALL Gridlab-D
 # ----------------------------------------------------
 
-RUN cd $TEMP_DIR \
-    && git clone https://github.com/gridlab-d/gridlab-d.git -b feature/1279 --single-branch \
-    && cd ${TEMP_DIR}/gridlab-d/third_party \
-    && tar -xzf xerces-c-3.2.0.tar.gz \
-    && cd ${TEMP_DIR}/gridlab-d/third_party/xerces-c-3.2.0 \
-    && ./configure \
-    && make \
-    && make install \
+RUN cd ${TEMP_DIR} \
+    && git clone https://github.com/gridlab-d/gridlab-d.git -b develop --single-branch \
     && cd ${TEMP_DIR}/gridlab-d \
-    && autoreconf -if \
-    && ./configure --with-helics=$GLD_INSTALL --prefix=$GLD_INSTALL --enable-silent-rules 'CFLAGS=-g -O2 -w' 'CXXFLAGS=-g -O2 -w -std=c++14' 'LDFLAGS=-g -O2 -w' \
-    && make \
-    && make install \
-    && cd /tmp \
+	&& git submodule update --init \
+	&& mkdir cmake-build \
+	&& cd cmake-build \
+	&& cmake -DCMAKE_INSTALL_PREFIX=/gridappsd -DGLD_USE_HELICS=ON ../ \
+	&& make \
+	&& make install \
+	&& cd /tmp \
     && /bin/rm -r ${TEMP_DIR}/gridlab-d
 
 # ----------------------------------------------------
@@ -146,7 +145,7 @@ RUN cd ${TEMP_DIR} \
   && git clone https://github.com/GRIDAPPSD/SuiteSparse \
   && git clone https://github.com/GRIDAPPSD/json \
   && LD_LIBRARY_PATH=${TEMP_DIR}/gridappsd-state-estimator/SuiteSparse/lib/ make -C SuiteSparse LAPACK=-llapack BLAS=-lblas \
-  && make -C state-estimator \
+  && make -C state-estimator bin/state-estimator \
   && mkdir -p /gridappsd/services/gridappsd-state-estimator \
   && rm -rf .git SuiteSparse/.git json.git \
   && cp -r * /gridappsd/services/gridappsd-state-estimator \
