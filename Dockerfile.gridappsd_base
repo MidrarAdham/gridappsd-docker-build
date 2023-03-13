@@ -1,4 +1,5 @@
-FROM gridappsd/gridappsd_base:builder
+FROM gridappsd/gridappsd_build:3.10_test
+#FROM gridappsd/gridappsd_base:3.10_builder
 
 WORKDIR /gridappsd
 
@@ -113,48 +114,57 @@ RUN cd $TEMP_DIR \
 # INSTALL Java
 # ----------------------------------------------------
 
-RUN apt update \
-     && mkdir -p /usr/share/man/man1 \
-     && apt install -y openjdk-8-jdk-headless \
-     && apt-get clean
+#RUN apt update \
+     #&& mkdir -p /usr/share/man/man1 \
+     #&& apt install -y openjdk-8-jdk-headless \
+     #&& apt-get clean
+
+RUN cd ${TEMP_DIR} \
+    && wget https://github.com/adoptium/temurin8-binaries/releases/download/jdk8u322-b06/OpenJDK8U-jdk_x64_linux_hotspot_8u322b06.tar.gz \
+    && mkdir /usr/lib/jvm \
+    && cd /usr/lib/jvm \
+    && tar -xzf ${TEMP_DIR}/OpenJDK8U-jdk_x64_linux_hotspot_8u322b06.tar.gz \
+    && update-alternatives --install /usr/bin/java java /usr/lib/jvm/jdk8u322-b06/bin/java 1 \
+    && /bin/rm ${TEMP_DIR}/OpenJDK8U-jdk_x64_linux_hotspot_8u322b06.tar.gz
+     
 
 # ----------------------------------------------------
 # INSTALL Activemq c++ extensions
 # ----------------------------------------------------
 RUN cd ${TEMP_DIR} \
-    && wget http://archive.apache.org/dist/activemq/activemq-cpp/3.9.4/activemq-cpp-library-3.9.4-src.tar.gz \
-    && tar -xzf activemq-cpp-library-3.9.4-src.tar.gz \
-    && cd activemq-cpp-library-3.9.4 \
+    && wget http://archive.apache.org/dist/activemq/activemq-cpp/3.9.5/activemq-cpp-library-3.9.5-src.tar.gz \
+    && tar -xzf activemq-cpp-library-3.9.5-src.tar.gz \
+    && cd activemq-cpp-library-3.9.5 \
     && ./configure --prefix=${FNCS_INSTALL} \
     && make \
     && make install \
     && cd /tmp \
-    && /bin/rm -r ${TEMP_DIR}/activemq-cpp-library-3.9.4 \
-    && /bin/rm -r ${TEMP_DIR}/activemq-cpp-library-3.9.4-src.tar.gz 
+    && /bin/rm -r ${TEMP_DIR}/activemq-cpp-library-3.9.5 \
+    && /bin/rm -r ${TEMP_DIR}/activemq-cpp-library-3.9.5-src.tar.gz 
 
 # ----------------------------------------------------
 # INSTALL Python requirements 
 # ----------------------------------------------------
-COPY ./requirements_base.txt /gridappsd/requirements_base.txt
-RUN pip install -r /gridappsd/requirements_base.txt && \
-  rm -rf /root/.cache/pip/wheels
+#COPY ./requirements_base.txt /gridappsd/requirements_base.txt
+#RUN pip install -r /gridappsd/requirements_base.txt && \
+#  rm -rf /root/.cache/pip/wheels
 
 # ----------------------------------------------------
 # INSTALL State Estimator
 # ----------------------------------------------------
-RUN cd ${TEMP_DIR} \
-  && git clone https://github.com/GRIDAPPSD/gridappsd-state-estimator \
-  && cd gridappsd-state-estimator \
-  && git clone https://github.com/GRIDAPPSD/SuiteSparse \
-  && git clone https://github.com/GRIDAPPSD/json \
-  && LD_LIBRARY_PATH=${TEMP_DIR}/gridappsd-state-estimator/SuiteSparse/lib/ make -C SuiteSparse LAPACK=-llapack BLAS=-lblas \
-  && make -C state-estimator \
-  && mkdir -p /gridappsd/services/gridappsd-state-estimator \
-  && rm -rf .git SuiteSparse/.git json.git \
-  && cp -r * /gridappsd/services/gridappsd-state-estimator \
-  && cp /gridappsd/services/gridappsd-state-estimator/state-estimator.config /gridappsd/services/ \
-  && cd /tmp \
-  && /bin/rm -r ${TEMP_DIR}/gridappsd-state-estimator
+#RUN cd ${TEMP_DIR} \
+#  && git clone https://github.com/GRIDAPPSD/gridappsd-state-estimator \
+#  && cd gridappsd-state-estimator \
+#  && git clone https://github.com/GRIDAPPSD/SuiteSparse \
+#  && git clone https://github.com/GRIDAPPSD/json \
+#  && LD_LIBRARY_PATH=${TEMP_DIR}/gridappsd-state-estimator/SuiteSparse/lib/ make -C SuiteSparse LAPACK=-llapack BLAS=-lblas \
+#  && make -C state-estimator \
+#  && mkdir -p /gridappsd/services/gridappsd-state-estimator \
+#  && rm -rf .git SuiteSparse/.git json.git \
+#  && cp -r * /gridappsd/services/gridappsd-state-estimator \
+#  && cp /gridappsd/services/gridappsd-state-estimator/state-estimator.config /gridappsd/services/ \
+#  && cd /tmp \
+#  && /bin/rm -r ${TEMP_DIR}/gridappsd-state-estimator
 
 # ----------------------------------------------------
 # INSTALL Ochre
@@ -171,4 +181,5 @@ RUN cd ${TEMP_DIR} \
 # ----------------------------------------------------
 # Set the JAVA_HOME variable 
 # ----------------------------------------------------
-ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64
+#ENV JAVA_HOME /usr/lib/jvm/java-8-openjdk-amd64
+ENV JAVA_HOME /usr/lib/jvm/jdk8u322-b06
