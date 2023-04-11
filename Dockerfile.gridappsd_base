@@ -157,11 +157,6 @@ RUN cd $TEMP_DIR \
 # INSTALL Java
 # ----------------------------------------------------
 
-#RUN apt update \
-     #&& mkdir -p /usr/share/man/man1 \
-     #&& apt install -y openjdk-8-jdk-headless \
-     #&& apt-get clean
-
 RUN cd ${TEMP_DIR} \
     && wget https://github.com/adoptium/temurin8-binaries/releases/download/jdk8u322-b06/OpenJDK8U-jdk_x64_linux_hotspot_8u322b06.tar.gz \
     && mkdir /usr/lib/jvm \
