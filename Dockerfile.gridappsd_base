@@ -102,7 +102,7 @@ ENV PKG_CONFIG_PATH=
 # ----------------------------------------------------
 
 RUN cd $TEMP_DIR \
-    && git clone -b develop --single-branch https://github.com/GRIDAPPSD/fncs.git \
+    && git clone -b develop --single-branch https://github.com/MidrarAdham/fncs.git \
     && cd fncs \
     && ./configure --prefix=${FNCS_INSTALL} --with-zmq=${FNCS_INSTALL} \
     && make \
@@ -119,7 +119,7 @@ RUN cd $TEMP_DIR \
 # ----------------------------------------------------
 
 RUN cd $TEMP_DIR \
-    && git clone https://github.com/GMLC-TDC/HELICS -b v2.7.1 \
+    && git clone https://github.com/MidrarAdham/HELICS.git -b v2.7.1 \
     && cd HELICS \
     && mkdir build \
     && cd build \
@@ -138,7 +138,7 @@ RUN cd $TEMP_DIR \
 # ----------------------------------------------------
 
 RUN cd $TEMP_DIR \
-    && git clone https://github.com/gridlab-d/gridlab-d.git -b gridappsd-branch --single-branch \
+    && git clone https://github.com/MidrarAdham/gridlab-d.git -b gridappsd-branch --single-branch \
     && cd ${TEMP_DIR}/gridlab-d/third_party \
     && tar -xzf xerces-c-3.2.0.tar.gz \
     && cd ${TEMP_DIR}/gridlab-d/third_party/xerces-c-3.2.0 \
@@ -191,10 +191,10 @@ RUN pip install -r /gridappsd/requirements_base.txt && \
 # INSTALL State Estimator
 # ----------------------------------------------------
 RUN cd ${TEMP_DIR} \
-  && git clone https://github.com/GRIDAPPSD/gridappsd-state-estimator \
+  && git clone https://github.com/MidrarAdham/gridappsd-state-estimator.git \
   && cd gridappsd-state-estimator \
-  && git clone https://github.com/GRIDAPPSD/SuiteSparse \
-  && git clone https://github.com/GRIDAPPSD/json \
+  && git clone https://github.com/MidrarAdham/SuiteSparse.git \
+  && git clone https://github.com/MidrarAdham/json.git \
   && LD_LIBRARY_PATH=${TEMP_DIR}/gridappsd-state-estimator/SuiteSparse/lib/ make -C SuiteSparse LAPACK=-llapack BLAS=-lblas \
   && make -C state-estimator AMQINCPATH3=/gridappsd/include/activemq-cpp-3.9.5 \
   && mkdir -p /gridappsd/services/gridappsd-state-estimator \
